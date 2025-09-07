@@ -1,13 +1,23 @@
 {
-  "name": "server",
+  "name": "delipucash-server",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "api/index.js",
   "license": "MIT",
   "type": "module",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
-    "dev": "nodemon index.js",
-    "start": "node index.js",
-    "postinstall": "prisma generate"
+    "dev": "nodemon api/index.js",
+    "start": "node api/index.js",
+    "build": "prisma generate",
+    "postinstall": "prisma generate",
+    "vercel-build": "prisma generate && prisma db push",
+    "db:push": "prisma db push",
+    "db:studio": "prisma studio",
+    "db:reset": "prisma migrate reset",
+    "lint": "echo 'No linting configured'",
+    "test": "echo 'No tests specified'"
   },
   "dependencies": {
     "@prisma/client": "^6.13.0",
@@ -22,12 +32,12 @@
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.8.0",
     "nodemailer": "^6.9.15",
-    "nodemon": "^3.1.4",
     "prisma": "^6.13.0",
     "uuid": "9"
   },
-  "packageManager": "yarn@4.9.2",
   "devDependencies": {
+    "nodemon": "^3.1.4",
     "prisma": "^6.13.0"
-  }
+  },
+  "packageManager": "yarn@4.9.2"
 }

@@ -1,14 +1,34 @@
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import prisma from '../lib/prisma.mjs';
 
 const connectDB = async () => {
   try {
-    await prisma.$connect();
-    console.log('Prisma connected');
+    // Test the connection
+    await prisma.$queryRaw`SELECT 1`;
+    console.log('✅ Database connected successfully');
+    return true;
   } catch (error) {
-    console.error(`Error: ${error.message}`);
-    process.exit(1);
+    console.error('❌ Database connection failed:', error.message);
+    
+    // In serverless, we don't want to exit the process
+    if (process.env.VERCEL !== '1') {
+      process.exit(1);
+    }
+    
+    throw error;
+  }
+};
+
+// Health check function for database
+export const checkDatabaseHealth = async () => {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    return { status: 'healthy', timestamp: new Date().toISOString() };
+  } catch (error) {
+    return { 
+      status: 'unhealthy', 
+      error: error.message,
+      timestamp: new Date().toISOString() 
+    };
   }
 };
 
