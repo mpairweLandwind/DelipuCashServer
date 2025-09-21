@@ -78,6 +78,11 @@ model AppUser {
   Comment Comment[]
 
   Ad Ad[]
+
+  // Response interaction relations
+  responseLikes     ResponseLike[]
+  responseDislikes  ResponseDislike[]
+  responseReplies   ResponseReply[]
 }
 
 model Video {
@@ -271,7 +276,50 @@ model Response {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  // Relations for likes, dislikes, and replies
+  likes       ResponseLike[]
+  dislikes    ResponseDislike[]
+  replies     ResponseReply[]
+
   @@index([userId, questionId]) // Index for faster queries
+}
+
+model ResponseLike {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String   @db.ObjectId
+  user       AppUser  @relation(fields: [userId], references: [id])
+  responseId String   @db.ObjectId
+  response   Response @relation(fields: [responseId], references: [id])
+  createdAt  DateTime @default(now())
+
+  @@unique([userId, responseId]) // Each user can only like a response once
+  @@index([responseId])
+}
+
+model ResponseDislike {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String   @db.ObjectId
+  user       AppUser  @relation(fields: [userId], references: [id])
+  responseId String   @db.ObjectId
+  response   Response @relation(fields: [responseId], references: [id])
+  createdAt  DateTime @default(now())
+
+  @@unique([userId, responseId]) // Each user can only dislike a response once
+  @@index([responseId])
+}
+
+model ResponseReply {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  replyText  String
+  userId     String   @db.ObjectId
+  user       AppUser  @relation(fields: [userId], references: [id])
+  responseId String   @db.ObjectId
+  response   Response @relation(fields: [responseId], references: [id])
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([responseId])
+  @@index([userId])
 }
 
 model UploadQuestion {

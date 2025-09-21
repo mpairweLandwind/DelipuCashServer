@@ -150,6 +150,7 @@ export const createResponse = asyncHandler(async (req, res) => {
 // Get All Responses for a Question
 export const getResponsesForQuestion = asyncHandler(async (req, res) => {
   const { questionId } = req.params;
+  const { userId } = req.query; // Optional userId to check user's like/dislike status
 
   try {
     // Fetch responses for the question, including user details and timestamps
@@ -161,25 +162,78 @@ export const getResponsesForQuestion = asyncHandler(async (req, res) => {
         id: true,
         responseText: true,
         createdAt: true,
-        //updatedAt: true,
         user: {
           select: {
             id: true,
-            firstName: true, // Include user's name or other relevant fields
-            lastName: true, // Include user's email if needed
+            firstName: true,
+            lastName: true,
           },
         },
       },
       orderBy: {
-        createdAt: 'asc', // Sort responses by creation date (newest first)
+        createdAt: 'asc', // Sort responses by creation date (oldest first)
       },
     });
 
-    // Log the fetched responses for debugging
-    console.log('Fetched responses:', responses);
+    // Enhance responses with like/dislike/reply counts and user status
+    const enhancedResponses = await Promise.all(
+      responses.map(async (response) => {
+        // Get counts
+        const likeCount = await prisma.responseLike.count({
+          where: { responseId: response.id },
+        });
 
-    // Send the responses as a JSON response
-    res.status(200).json(responses);
+        const dislikeCount = await prisma.responseDislike.count({
+          where: { responseId: response.id },
+        });
+
+        const replyCount = await prisma.responseReply.count({
+          where: { responseId: response.id },
+        });
+
+        let isLiked = false;
+        let isDisliked = false;
+
+        // Check user's like/dislike status if userId is provided
+        if (userId) {
+          const userLike = await prisma.responseLike.findUnique({
+            where: {
+              userId_responseId: {
+                userId,
+                responseId: response.id,
+              },
+            },
+          });
+
+          const userDislike = await prisma.responseDislike.findUnique({
+            where: {
+              userId_responseId: {
+                userId,
+                responseId: response.id,
+              },
+            },
+          });
+
+          isLiked = !!userLike;
+          isDisliked = !!userDislike;
+        }
+
+        return {
+          ...response,
+          likeCount,
+          dislikeCount,
+          replyCount,
+          isLiked,
+          isDisliked,
+        };
+      })
+    );
+
+    // Log the fetched responses for debugging
+    console.log('Fetched enhanced responses:', enhancedResponses);
+
+    // Send the enhanced responses as a JSON response
+    res.status(200).json(enhancedResponses);
   } catch (error) {
     // Log any errors that occur during the process
     console.error('Error fetching responses:', error);

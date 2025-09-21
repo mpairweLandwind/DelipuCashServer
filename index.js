@@ -19,6 +19,7 @@ import exploreRoutes from './routes/exploreRoutes.mjs';
 import rewardQuestionRoutes from './routes/rewardQuestionRoutes.mjs';
 import notificationRoutes from './routes/notificationRoutes.mjs';
 import userRoutes from './routes/userRoutes.mjs';
+import responseRoutes from './routes/responseRoutes.mjs';
 
 dotenv.config();
 
@@ -81,6 +82,7 @@ app.use('/api/explore', exploreRoutes);
 app.use('/api/reward-questions', rewardQuestionRoutes);
 app.use('/api/notifications', notificationRoutes); // Changed to more consistent path
 app.use('/api/users', userRoutes);
+app.use('/api/responses', responseRoutes);
 
 // Health check endpoint for Vercel
 app.get('/api/health', (req, res) => {
